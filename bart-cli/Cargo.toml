@@ -1,0 +1,16 @@
+[package]
+name = "bart-cli"
+version = "0.1.0"
+edition = "2021"
+description = "CLI for the BART API"
+
+[[bin]]
+name = "bart"
+path = "src/main.rs"
+
+[dependencies]
+bart = { workspace = true }
+clap = { workspace = true }
+libc = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
