@@ -1,0 +1,124 @@
+{
+  "?xml": {
+    "@version": "1.0",
+    "@encoding": "utf-8"
+  },
+  "root": {
+    "uri": {
+      "#cdata-section": "http://api.bart.gov/api/route.aspx?cmd=routes&json=y"
+    },
+    "routes": {
+      "route": [
+        {
+          "name": "Daly City to Dublin/Pleasanton",
+          "abbr": "DALY-DUBL",
+          "routeID": "ROUTE 12",
+          "number": "12",
+          "hexcolor": "#0099CC",
+          "color": "BLUE",
+          "direction": "North"
+        },
+        {
+          "name": "Dublin/Pleasanton to Daly City",
+          "abbr": "DUBL-DALY",
+          "routeID": "ROUTE 11",
+          "number": "11",
+          "hexcolor": "#0099CC",
+          "color": "BLUE",
+          "direction": "South"
+        },
+        {
+          "name": "Daly City to Berryessa/North San Jose",
+          "abbr": "DALY-BERY",
+          "routeID": "ROUTE 6",
+          "number": "6",
+          "hexcolor": "#339933",
+          "color": "GREEN",
+          "direction": "North"
+        },
+        {
+          "name": "Berryessa/North San Jose to Daly City",
+          "abbr": "BERY-DALY",
+          "routeID": "ROUTE 5",
+          "number": "5",
+          "hexcolor": "#339933",
+          "color": "GREEN",
+          "direction": "South"
+        },
+        {
+          "name": "Oakland Int'l Airport OAK to Coliseum",
+          "abbr": "COLS-OAKL",
+          "routeID": "ROUTE 19",
+          "number": "19",
+          "hexcolor": "#B0BEC7",
+          "color": "GREY",
+          "direction": "North"
+        },
+        {
+          "name": "Coliseum to Oakland Int'l Airport OAK",
+          "abbr": "OAKL-COLS",
+          "routeID": "ROUTE 20",
+          "number": "20",
+          "hexcolor": "#B0BEC7",
+          "color": "GREY",
+          "direction": "South"
+        },
+        {
+          "name": "Berryessa/North San Jose to Richmond",
+          "abbr": "BERY-RICH",
+          "routeID": "ROUTE 3",
+          "number": "3",
+          "hexcolor": "#FF9933",
+          "color": "ORANGE",
+          "direction": "North"
+        },
+        {
+          "name": "Richmond to Berryessa/North San Jose",
+          "abbr": "RICH-BERY",
+          "routeID": "ROUTE 4",
+          "number": "4",
+          "hexcolor": "#FF9933",
+          "color": "ORANGE",
+          "direction": "South"
+        },
+        {
+          "name": "Millbrae/SF Int'l Airport SFO to Richmond",
+          "abbr": "MLBR-RICH",
+          "routeID": "ROUTE 8",
+          "number": "8",
+          "hexcolor": "#FF0000",
+          "color": "RED",
+          "direction": "North"
+        },
+        {
+          "name": "Richmond to SF Int'l Airport SFO/Millbrae",
+          "abbr": "RICH-MLBR",
+          "routeID": "ROUTE 7",
+          "number": "7",
+          "hexcolor": "#FF0000",
+          "color": "RED",
+          "direction": "South"
+        },
+        {
+          "name": "Millbrae/SF Int'l SFO to Antioch",
+          "abbr": "SFIA-ANTC",
+          "routeID": "ROUTE 2",
+          "number": "2",
+          "hexcolor": "#FFFF33",
+          "color": "YELLOW",
+          "direction": "North"
+        },
+        {
+          "name": "Antioch to SF Int'l Airport SFO/Millbrae",
+          "abbr": "ANTC-SFIA",
+          "routeID": "ROUTE 1",
+          "number": "1",
+          "hexcolor": "#FFFF33",
+          "color": "YELLOW",
+          "direction": "South"
+        }
+      ]
+    },
+    "message": ""
+  }
+}
