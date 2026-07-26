@@ -27,7 +27,6 @@
           rustToolchain
           pkgs.trunk
         ];
-        RUST_SRC_PATH = "${fenix.packages.${system}.stable.rust-src}/lib/rustlib/src/rust/library";
       };
     };
 }
