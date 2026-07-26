@@ -10,15 +10,6 @@ Enter the bart-rs dev shell (from the workspace root), which provides `trunk` an
 nix develop
 ```
 
-## Build
-
-```sh
-cd bart-web
-trunk build --release
-```
-
-Output lands in `bart-web/dist/` — static files ready to serve.
-
 ## Dev server
 
 ```sh
@@ -28,13 +19,19 @@ trunk serve
 
 Opens a local server with hot-reload at `http://localhost:8080`.
 
-## Serve with nginx
+## Build
 
-Point nginx at `bart-web/dist/`:
+```sh
+cd bart-web
+trunk build --release
+```
 
-```nginx
-location /bart/ {
-    root /path/to/bart-rs/bart-web/dist;
-    try_files $uri $uri/ /index.html;
-}
+Output lands in `bart-web/dist/` — static files ready to serve.
+
+## Deploy
+
+Build release artifacts and copy them to a web server over SSH:
+
+```sh
+./bart-web/deploy.sh <host>
 ```
