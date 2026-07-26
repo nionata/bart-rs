@@ -13,7 +13,6 @@ pub fn App() -> impl IntoView {
     let (error, set_error) = signal(Option::<String>::None);
 
     let fetch = {
-        let client = client.clone();
         move || {
             let client = client.clone();
             task::spawn_local(async move {
@@ -32,7 +31,10 @@ pub fn App() -> impl IntoView {
     fetch();
 
     set_interval(fetch, Duration::from_secs(60));
-    set_interval(move || set_elapsed.update(|s| *s += 1), Duration::from_secs(1));
+    set_interval(
+        move || set_elapsed.update(|s| *s += 1),
+        Duration::from_secs(1),
+    );
 
     view! {
         <div class="card">
