@@ -44,11 +44,11 @@ fn App() -> impl IntoView {
     }));
 
     view! {
-        <style>"body { margin: 0; background: #1e1e1e; color: #fff; display: flex; justify-content: center; } @media (max-width: 600px) { .card { margin-top: 2rem !important; width: calc(100% - 2rem) !important; } }"</style>
-        <div class="card" style="font-family: monospace; padding: 1.5rem; width: 100%; max-width: 480px; margin-top: 10rem; border: 1px solid #333; border-radius: 8px; box-shadow: 0 0 18px rgba(255,200,50,0.06), 0 0 4px rgba(255,200,50,0.04);">
+        <style>"body { margin: 0; background: #1e1e1e; color: #fff; display: flex; justify-content: center; padding: 0 1rem; box-sizing: border-box; } @media (max-width: 600px) { .card { margin-top: 2rem !important; font-size: 1.1rem; } }"</style>
+        <div class="card" style="font-family: monospace; padding: 1.5rem; width: 100%; max-width: 480px; margin-top: 10rem; border: 1px solid #333; border-radius: 8px; box-shadow: 0 0 18px rgba(255,200,50,0.06), 0 0 4px rgba(255,200,50,0.04); box-sizing: border-box;">
 
             {move || error.get().map(|e| view! { <p style="color: red;">"Error: " {e}</p> })}
-            <p>{move || {
+            <p style="font-size: 0.8em; opacity: 0.45; margin-top: 0;">{move || {
                 let s = elapsed.get();
                 if s == 0 { "Updated just now".to_string() } else { format!("Updated {s}s ago") }
             }}</p>
@@ -84,22 +84,27 @@ fn StationView(stn: StationEtd) -> impl IntoView {
 #[component]
 fn EtdTable(etds: Vec<Etd>) -> impl IntoView {
     view! {
-        <table style="border-collapse: collapse; margin-bottom: 0.5rem;">
+        <div style="margin-bottom: 0.5rem;">
             {etds.into_iter().map(|etd| {
                 let hexcolor = etd.estimate.first().map(|e| e.hexcolor.clone()).unwrap_or_default();
-                let times: Vec<String> = etd.estimate.iter().map(|e| e.minutes.to_string()).collect();
+                let parts: Vec<String> = etd.estimate.iter().map(|e| {
+                    e.minutes.as_mins().map(|n| n.to_string()).unwrap_or_else(|| "Leaving".to_string())
+                }).collect();
+                let times = if parts.iter().any(|s| s == "Leaving") {
+                    parts.join(", ")
+                } else {
+                    format!("{} min", parts.join(", "))
+                };
                 view! {
-                    <tr>
-                        <td style="padding: 0.1rem 1rem;">
-                            <svg width="12" height="12" style="vertical-align: middle;">
-                                <circle cx="6" cy="6" r="6" fill=hexcolor/>
-                            </svg>
-                        </td>
-                        <td style="padding: 0.1rem 1rem;">{etd.destination}</td>
-                        <td style="white-space: nowrap;">{times.join(", ")}</td>
-                    </tr>
+                    <div style="display: flex; align-items: center; padding: 0.35rem 0; gap: 0.75rem;">
+                        <svg width="12" height="12" style="flex-shrink: 0;">
+                            <circle cx="6" cy="6" r="6" fill=hexcolor/>
+                        </svg>
+                        <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{etd.destination}</span>
+                        <span style="white-space: nowrap; flex-shrink: 0;">{times}</span>
+                    </div>
                 }
             }).collect_view()}
-        </table>
+        </div>
     }
 }
