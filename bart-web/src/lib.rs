@@ -1,7 +1,6 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use bart::{BartClient, Etd, StationEtd};
-use gloo_timers::callback::Interval;
 use leptos::prelude::*;
 use wasm_bindgen_futures::spawn_local;
 
@@ -30,14 +29,14 @@ pub fn App() -> impl IntoView {
         }
     };
 
+    let update = { move || set_elapsed.update(|s| *s += 1) };
+
     fetch();
 
-    // Timers must outlive this function. WASM is single-threaded and the
-    // browser cancels all timers when the page closes, so leaking is safe.
-    std::mem::forget(Interval::new(60_000, fetch));
-    std::mem::forget(Interval::new(1_000, move || {
-        set_elapsed.update(|s| *s += 1)
-    }));
+    let _fetch_handle =
+        set_interval_with_handle(fetch, Duration::from_secs(60)).expect("Timer to create");
+    let _update_handle =
+        set_interval_with_handle(update, Duration::from_secs(1)).expect("Timer to create");
 
     view! {
         <div class="card">
