@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Duration};
+use std::{rc::Rc, time::Duration};
 
 use bart::{BartClient, Etd, StationEtd};
 use leptos::prelude::*;
@@ -6,7 +6,7 @@ use leptos::task;
 
 #[component]
 pub fn App() -> impl IntoView {
-    let client = Arc::new(BartClient::new());
+    let client = Rc::new(BartClient::new());
 
     let (etds, set_etds) = signal(Vec::<StationEtd>::new());
     let (elapsed, set_elapsed) = signal(0u32);
@@ -31,12 +31,8 @@ pub fn App() -> impl IntoView {
 
     fetch();
 
-    let update = { move || set_elapsed.update(|s| *s += 1) };
-
-    let _fetch_handle =
-        set_interval_with_handle(fetch, Duration::from_secs(60)).expect("Timer to create");
-    let _update_handle =
-        set_interval_with_handle(update, Duration::from_secs(1)).expect("Timer to create");
+    set_interval(fetch, Duration::from_secs(60));
+    set_interval(move || set_elapsed.update(|s| *s += 1), Duration::from_secs(1));
 
     view! {
         <div class="card">
