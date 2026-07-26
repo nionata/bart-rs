@@ -6,4 +6,3 @@ edition = "2021"
 [dependencies]
 bart = { workspace = true }
 leptos = { workspace = true, features = ["csr"] }
-wasm-bindgen-futures = { workspace = true }

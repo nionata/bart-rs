@@ -2,7 +2,7 @@ use std::{sync::Arc, time::Duration};
 
 use bart::{BartClient, Etd, StationEtd};
 use leptos::prelude::*;
-use wasm_bindgen_futures::spawn_local;
+use leptos::task;
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -16,7 +16,7 @@ pub fn App() -> impl IntoView {
         let client = client.clone();
         move || {
             let client = client.clone();
-            spawn_local(async move {
+            task::spawn_local(async move {
                 match client.estimates("GLEN").await {
                     Ok(data) => {
                         set_etds.set(data);
@@ -29,9 +29,9 @@ pub fn App() -> impl IntoView {
         }
     };
 
-    let update = { move || set_elapsed.update(|s| *s += 1) };
-
     fetch();
+
+    let update = { move || set_elapsed.update(|s| *s += 1) };
 
     let _fetch_handle =
         set_interval_with_handle(fetch, Duration::from_secs(60)).expect("Timer to create");
