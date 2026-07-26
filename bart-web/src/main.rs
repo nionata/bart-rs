@@ -44,8 +44,27 @@ fn App() -> impl IntoView {
     }));
 
     view! {
-        <style>"body { margin: 0; background: #1e1e1e; color: #fff; display: flex; justify-content: center; padding: 0 1rem; box-sizing: border-box; } @media (max-width: 600px) { .card { margin-top: 2rem !important; font-size: 1.1rem; } }"</style>
-        <div class="card" style="font-family: monospace; padding: 1.5rem; width: 100%; max-width: 480px; margin-top: 10rem; border: 1px solid #333; border-radius: 8px; box-shadow: 0 0 18px rgba(255,200,50,0.06), 0 0 4px rgba(255,200,50,0.04); box-sizing: border-box;">
+        <style>"
+            body {
+                margin: 0;
+                min-height: 100vh;
+                background-color: #0a0a12;
+                background-image: url(assets/map/bart-map-sf.png);
+                background-size: cover;
+                background-position: 25% center;
+                background-attachment: fixed;
+                color: #fff;
+                display: flex;
+                justify-content: center;
+                align-items: flex-start;
+                padding: 0 1rem;
+                box-sizing: border-box;
+            }
+            @media (max-width: 600px) {
+                .card { margin-top: 2rem !important; font-size: 1.1rem; }
+            }
+        "</style>
+        <div class="card" style="font-family: monospace; padding: 1.5rem; width: 100%; max-width: 480px; margin-top: 10rem; background: rgba(15,15,22,0.78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; box-shadow: 0 0 18px rgba(255,200,50,0.08), 0 0 4px rgba(255,200,50,0.04); box-sizing: border-box;">
 
             {move || error.get().map(|e| view! { <p style="color: red;">"Error: " {e}</p> })}
             <p style="font-size: 0.8em; opacity: 0.45; margin-top: 0;">{move || {
