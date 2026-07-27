@@ -1,22 +1,59 @@
-name: Format, build, test
+name: CI / Deploy
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
-env:
-  CARGO_TERM_COLOR: always
+permissions:
+  contents: read
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Format
-      run: cargo fmt
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v27
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Nix format check
+        run: |
+          nix fmt
+          git diff --exit-code
+
+      - name: Rust format check
+        run: nix develop -c cargo fmt --all --check
+
+      - name: Build
+        run: nix develop -c cargo build --workspace
+
+      - name: Test
+        run: nix develop -c cargo test --workspace
+
+      - name: Build web
+        run: nix develop -c trunk build --release
+        working-directory: ${{ github.workspace }}/bart-web
+
+      - name: Upload pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: bart-web/dist
+
+  deploy:
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -8,25 +8,42 @@
   };
 
   outputs =
-    { self, nixpkgs, fenix }:
+    {
+      self,
+      nixpkgs,
+      fenix,
+    }:
     let
-      system = "aarch64-linux";
-      pkgs = import nixpkgs { inherit system; };
-      rustToolchain = fenix.packages.${system}.combine [
-        fenix.packages.${system}.stable.cargo
-        fenix.packages.${system}.stable.rustc
-        fenix.packages.${system}.stable.rustfmt
-        fenix.packages.${system}.stable.clippy
-        fenix.packages.${system}.stable.rust-src
-        fenix.packages.${system}.targets.wasm32-unknown-unknown.stable.rust-std
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
       ];
+      forEachSystem = nixpkgs.lib.genAttrs systems;
     in
     {
-      devShells.${system}.default = pkgs.mkShell {
-        packages = [
-          rustToolchain
-          pkgs.trunk
-        ];
-      };
+      formatter = forEachSystem (system: nixpkgs.legacyPackages.${system}.nixfmt-tree);
+
+      devShells = forEachSystem (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          rustToolchain = fenix.packages.${system}.combine [
+            fenix.packages.${system}.stable.cargo
+            fenix.packages.${system}.stable.rustc
+            fenix.packages.${system}.stable.rustfmt
+            fenix.packages.${system}.stable.clippy
+            fenix.packages.${system}.stable.rust-src
+            fenix.packages.${system}.targets.wasm32-unknown-unknown.stable.rust-std
+          ];
+        in
+        {
+          default = pkgs.mkShell {
+            packages = [
+              rustToolchain
+              pkgs.trunk
+            ];
+          };
+        }
+      );
     };
 }
