@@ -334,4 +334,22 @@ mod tests {
             Err(Error::Api(_))
         ));
     }
+
+    #[test]
+    fn etd_invalid_station_fixture_is_api_error() {
+        let Err(Error::Api(msg)) = etd(&fixture("etd_invalid_station.json")) else {
+            panic!("expected Err(Api)")
+        };
+        assert!(msg.contains("Invalid orig"));
+        assert!(msg.contains("GLENA"));
+    }
+
+    #[test]
+    fn etd_no_service_parses_without_error() {
+        let etds = etd(&fixture("etd_no_service.json")).unwrap();
+        assert_eq!(etds.len(), 1);
+        assert_eq!(etds[0].abbr, "FRMT");
+        assert_eq!(etds[0].name, "Fremont");
+        assert!(etds[0].etd.is_empty());
+    }
 }

@@ -1,0 +1,14 @@
+{
+    "?xml": {
+        "@version": "1.0",
+        "@encoding": "utf-8"
+    },
+    "root": {
+        "message": {
+            "error": {
+                "text": "Invalid orig",
+                "details": "The orig station parameter GLENA is missing or invalid."
+            }
+        }
+    }
+}

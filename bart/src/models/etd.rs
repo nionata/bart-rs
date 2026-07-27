@@ -158,7 +158,8 @@ pub struct StationEtd {
     pub name: String,
     /// Station abbreviation, e.g. `"GLEN"`.
     pub abbr: String,
-    /// Departures grouped by destination.
+    /// Departures grouped by destination. Empty when the API reports no service.
+    #[serde(default)]
     pub etd: Vec<Etd>,
 }
 
