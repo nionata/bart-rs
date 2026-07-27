@@ -16,7 +16,7 @@ body {
     margin-top: 10rem;
     border: 1px solid #333;
     border-radius: 8px;
-    box-shadow: 0 0 18px rgba(255, 200, 50, 0.06), 0 0 4px rgba(255, 200, 50, 0.04);
+    box-shadow: 0 0 3px rgba(255, 200, 50, 0.06), 0 0 1px rgba(255, 200, 50, 0.04);
     box-sizing: border-box;
 }
 
