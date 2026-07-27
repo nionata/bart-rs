@@ -28,6 +28,7 @@ pub fn App() -> impl IntoView {
     on_cleanup(move || handle.remove());
 
     view! {
+        <img class="map-bg" src="assets/map.svg" aria-hidden="true"/>
         {move || {
             if stations.get().is_empty() {
                 return ().into_any();
