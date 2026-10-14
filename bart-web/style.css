@@ -92,6 +92,13 @@ body {
     padding: 0.5rem;
 }
 
+.pull-indicator {
+    font-size: 0.75em;
+    text-align: center;
+    padding: 0.35rem 0;
+    color: #888;
+}
+
 .station-header {
     display: flex;
     justify-content: space-between;

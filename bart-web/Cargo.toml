@@ -7,3 +7,4 @@ edition = "2021"
 bart = { workspace = true }
 leptos = { workspace = true, features = ["csr"] }
 js-sys = { workspace = true }
+web-sys = { workspace = true }

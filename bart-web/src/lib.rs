@@ -85,9 +85,10 @@ fn DepartureBoard(station: Station) -> impl IntoView {
     let (refreshing, set_refreshing) = signal(false);
 
     let station_name = format!("{} ({})", station.name, station.abbr);
-    let abbr = station.abbr;
+    let abbr = station.abbr.clone();
 
-    let fetch = {
+    // Rc so the same fetch closure can be shared across the interval and pull-to-refresh.
+    let fetch: Rc<dyn Fn()> = Rc::new({
         let client = client.clone();
         move || {
             if refreshing.get_untracked() {
@@ -109,36 +110,78 @@ fn DepartureBoard(station: Station) -> impl IntoView {
                 set_refreshing.set(false);
             });
         }
-    };
+    });
 
-    fetch();
+    (*fetch)();
 
-    // Single 1s interval: real-timestamp elapsed tracking + auto-refetch when stale.
-    // Using Date::now() means this is accurate even after the browser throttles or
-    // pauses timers in the background — when the tab comes back to the foreground
-    // the next tick will see the true elapsed time and trigger a fetch if needed.
-    set_interval(
-        move || {
-            let last = last_fetch_ms.get_untracked();
-            if last > 0.0 {
-                let secs = ((js_sys::Date::now() - last) / 1000.0) as u32;
-                set_elapsed.set(secs);
-                if secs >= 60 {
-                    fetch();
+    {
+        let fetch = fetch.clone();
+        set_interval(
+            move || {
+                let last = last_fetch_ms.get_untracked();
+                if last > 0.0 {
+                    let secs = ((js_sys::Date::now() - last) / 1000.0) as u32;
+                    set_elapsed.set(secs);
+                    if secs >= 60 {
+                        (*fetch)();
+                    }
                 }
-            }
-        },
-        Duration::from_secs(1),
-    );
+            },
+            Duration::from_secs(1),
+        );
+    }
+
+    let (touch_start_y, set_touch_start_y) = signal(Option::<f64>::None);
+    let (pull_distance, set_pull_distance) = signal(0f64);
+    const PULL_THRESHOLD: f64 = 80.0;
+    let fetch_touch = fetch.clone();
 
     view! {
-        <div class="card">
+        <div class="card"
+            on:touchstart=move |ev| {
+                if let Some(touch) = ev.touches().get(0) {
+                    set_touch_start_y.set(Some(touch.client_y() as f64));
+                    set_pull_distance.set(0.0);
+                }
+            }
+            on:touchmove=move |ev| {
+                if let Some(start_y) = touch_start_y.get_untracked() {
+                    if let Some(touch) = ev.touches().get(0) {
+                        let delta = touch.client_y() as f64 - start_y;
+                        if delta > 0.0 {
+                            set_pull_distance.set(delta.min(PULL_THRESHOLD * 1.5));
+                        }
+                    }
+                }
+            }
+            on:touchend=move |_| {
+                let dist = pull_distance.get_untracked();
+                set_touch_start_y.set(None);
+                set_pull_distance.set(0.0);
+                if dist >= PULL_THRESHOLD {
+                    (*fetch_touch)();
+                }
+            }
+        >
             <div class="station-header">
                 <h3>{station_name}</h3>
                 <button class="change-station" on:click=move |_| {
                     let _ = window().location().set_hash("");
                 }>"×"</button>
             </div>
+            {move || {
+                let dist = pull_distance.get();
+                let is_refreshing = refreshing.get();
+                if is_refreshing {
+                    view! { <div class="pull-indicator">"Refreshing…"</div> }.into_any()
+                } else if dist >= PULL_THRESHOLD {
+                    view! { <div class="pull-indicator">"↑ Release to refresh"</div> }.into_any()
+                } else if dist > 0.0 {
+                    view! { <div class="pull-indicator">"↓ Pull to refresh"</div> }.into_any()
+                } else {
+                    ().into_any()
+                }
+            }}
             {move || {
                 if let Some(e) = error.get() {
                     return view! { <p class="error">"Error: " {e}</p> }.into_any();
