@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 bart = { workspace = true }
 leptos = { workspace = true, features = ["csr"] }
+js-sys = { workspace = true }

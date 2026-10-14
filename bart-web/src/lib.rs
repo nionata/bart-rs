@@ -79,32 +79,55 @@ fn StationPicker(
 fn DepartureBoard(station: Station) -> impl IntoView {
     let client = Rc::new(BartClient::new());
     let (etds, set_etds) = signal(Vec::<StationEtd>::new());
+    let (last_fetch_ms, set_last_fetch_ms) = signal(0f64);
     let (elapsed, set_elapsed) = signal(0u32);
     let (error, set_error) = signal(Option::<String>::None);
+    let (refreshing, set_refreshing) = signal(false);
 
     let station_name = format!("{} ({})", station.name, station.abbr);
     let abbr = station.abbr;
 
-    let fetch = move || {
+    let fetch = {
         let client = client.clone();
-        let abbr = abbr.clone();
-        task::spawn_local(async move {
-            match client.estimates(&abbr).await {
-                Ok(data) => {
-                    set_etds.set(data);
-                    set_elapsed.set(0);
-                    set_error.set(None);
-                }
-                Err(e) => set_error.set(Some(e.to_string())),
+        move || {
+            if refreshing.get_untracked() {
+                return;
             }
-        });
+            set_refreshing.set(true);
+            let client = client.clone();
+            let abbr = abbr.clone();
+            task::spawn_local(async move {
+                match client.estimates(&abbr).await {
+                    Ok(data) => {
+                        set_etds.set(data);
+                        set_last_fetch_ms.set(js_sys::Date::now());
+                        set_elapsed.set(0);
+                        set_error.set(None);
+                    }
+                    Err(e) => set_error.set(Some(e.to_string())),
+                }
+                set_refreshing.set(false);
+            });
+        }
     };
 
     fetch();
 
-    set_interval(fetch, Duration::from_secs(60));
+    // Single 1s interval: real-timestamp elapsed tracking + auto-refetch when stale.
+    // Using Date::now() means this is accurate even after the browser throttles or
+    // pauses timers in the background — when the tab comes back to the foreground
+    // the next tick will see the true elapsed time and trigger a fetch if needed.
     set_interval(
-        move || set_elapsed.update(|s| *s += 1),
+        move || {
+            let last = last_fetch_ms.get_untracked();
+            if last > 0.0 {
+                let secs = ((js_sys::Date::now() - last) / 1000.0) as u32;
+                set_elapsed.set(secs);
+                if secs >= 60 {
+                    fetch();
+                }
+            }
+        },
         Duration::from_secs(1),
     );
 
