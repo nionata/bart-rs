@@ -1,4 +1,4 @@
-use std::{rc::Rc, time::Duration};
+use std::{collections::HashSet, rc::Rc, time::Duration};
 
 use bart::{BartClient, Etd, Station, StationEtd};
 use leptos::ev;
@@ -9,10 +9,19 @@ fn non_empty_location_hash() -> Option<String> {
     location_hash().filter(|hash| !hash.is_empty())
 }
 
+// Affine transform fitted from BART station lat/lon to the SVG map's 2736×2736 canvas.
+// Returns (x, y) as percentages (0.0–100.0) of the canvas size.
+fn station_svg_pos(lat: f64, lon: f64) -> (f32, f32) {
+    let x = (43.7959 * lat + 2679.9100 * lon + 327017.2209) / 2736.0 * 100.0;
+    let y = (-3280.3850 * lat - 347.0600 * lon + 82652.4056) / 2736.0 * 100.0;
+    (x as f32, y as f32)
+}
+
 #[component]
 pub fn App() -> impl IntoView {
     let (station, set_station) = signal(non_empty_location_hash());
     let (stations, set_stations) = signal(Vec::<Station>::new());
+    let (pulses, set_pulses) = signal(Vec::<(f32, f32, String)>::new());
 
     let client = Rc::new(BartClient::new());
     task::spawn_local(async move {
@@ -29,6 +38,14 @@ pub fn App() -> impl IntoView {
 
     view! {
         <img class="map-bg" src="assets/map.svg" aria-hidden="true"/>
+        <svg class="pulse-overlay" viewBox="0 0 100 100"
+             xmlns="http://www.w3.org/2000/svg"
+             preserveAspectRatio="xMidYMid meet">
+            {move || pulses.get().into_iter().map(|(x, y, color)| view! {
+                <circle cx={x} cy={y} r="1.0" fill={color.clone()} class="pulse-dot"/>
+                <circle cx={x} cy={y} r="1.0" fill={color} class="pulse-ring"/>
+            }).collect_view()}
+        </svg>
         {move || {
             if stations.get().is_empty() {
                 return ().into_any();
@@ -37,7 +54,7 @@ pub fn App() -> impl IntoView {
                 None => view! { <StationPicker set_station stations/> }.into_any(),
                 Some(abbr) => {
                     match stations.get().into_iter().find(|s| s.abbr == abbr) {
-                        Some(station) => view! { <DepartureBoard station/> }.into_any(),
+                        Some(station) => view! { <DepartureBoard station set_pulses/> }.into_any(),
                         None => view! {
                             <div class="card">
                                 <p class="error">"Unknown station: " {abbr}</p>
@@ -76,14 +93,34 @@ fn StationPicker(
 }
 
 #[component]
-fn DepartureBoard(station: Station) -> impl IntoView {
+fn DepartureBoard(station: Station, set_pulses: WriteSignal<Vec<(f32, f32, String)>>) -> impl IntoView {
     let client = Rc::new(BartClient::new());
     let (etds, set_etds) = signal(Vec::<StationEtd>::new());
     let (elapsed, set_elapsed) = signal(0u32);
     let (error, set_error) = signal(Option::<String>::None);
 
     let station_name = format!("{} ({})", station.name, station.abbr);
-    let abbr = station.abbr;
+    let abbr = station.abbr.clone();
+
+    let lat: f64 = station.gtfs_latitude.parse().unwrap_or(0.0);
+    let lon: f64 = station.gtfs_longitude.parse().unwrap_or(0.0);
+    let (sx, sy) = station_svg_pos(lat, lon);
+
+    Effect::new(move |_| {
+        let data = etds.get();
+        let mut seen = HashSet::new();
+        let new_pulses: Vec<(f32, f32, String)> = data.iter()
+            .flat_map(|stn| stn.etd.iter())
+            .filter(|etd| etd.estimate.first().map_or(false, |e| {
+                e.minutes.as_mins().map_or(true, |m| m <= 2)
+            }))
+            .filter_map(|etd| etd.estimate.first().map(|e| e.hexcolor.clone()))
+            .filter(|color| seen.insert(color.clone()))
+            .map(|color| (sx, sy, color))
+            .collect();
+        set_pulses.set(new_pulses);
+    });
+    on_cleanup(move || set_pulses.set(vec![]));
 
     let fetch = move || {
         let client = client.clone();
