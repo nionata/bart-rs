@@ -15,6 +15,8 @@ esp-backtrace = { version = "0.20", features = [
 ] }
 esp-println = { version = "0.18", default-features = false, features = ["esp32c3", "jtag-serial"] }
 esp-bootloader-esp-idf = { version = "0.6", features = ["esp32c3"] }
+esp-hal-smartled = { version = "0.18", features = ["esp32c3"] }
+smart-leds = "0.4"
 
 [profile.dev]
 opt-level = "s"
