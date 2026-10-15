@@ -1,0 +1,11 @@
+[build]
+target = "riscv32imc-unknown-none-elf"
+
+[target.riscv32imc-unknown-none-elf]
+# `cargo run` flashes and opens the serial monitor.
+# Change the port if espflash doesn't auto-detect yours.
+runner = "espflash flash --monitor"
+rustflags = [
+    "-C", "link-arg=-Tlinkall.x",
+    "-C", "link-arg=-Trom-functions.x",
+]
